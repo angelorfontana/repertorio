@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#efe9db">
+  <title>Cifras Offline</title>
+  <style>
+    :root {
+      --paper: #f4efe4;
+      --paper-deep: #e8dfcf;
+      --ink: #262521;
+      --muted: #6f6a61;
+      --line: #cfc5b4;
+      --accent: #b9422f;
+      --accent-dark: #873225;
+      --chord: #c52f24;
+      --white: #fffdf8;
+      --shadow: 0 14px 40px rgba(52, 45, 34, .12);
+      --song-size: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(89, 74, 50, .035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 100% 28px;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { touch-action: manipulation; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+    }
+
+    .library {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--line);
+      background: rgba(232, 223, 207, .96);
+      backdrop-filter: blur(10px);
+      z-index: 4;
+    }
+
+    .brand {
+      padding: 22px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: Georgia, serif;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .search-wrap { padding: 0 16px 14px; }
+
+    .search {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      background: var(--white);
+      outline: none;
+    }
+
+    .search:focus { border-color: var(--accent); }
+
+    .song-list {
+      flex: 1;
+      overflow: auto;
+      padding: 0 10px 16px;
+    }
+
+    .song-item {
+      width: 100%;
+      display: block;
+      padding: 12px 10px;
+      border: 0;
+      border-bottom: 1px solid rgba(120, 105, 83, .18);
+      border-radius: 4px;
+      color: var(--ink);
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .song-item:hover { background: rgba(255, 253, 248, .55); }
+    .song-item.active { color: var(--accent-dark); background: var(--white); }
+    .song-item strong, .song-item span { display: block; }
+    .song-item strong { margin-bottom: 3px; font-size: 15px; }
+    .song-item span { color: var(--muted); font-size: 12px; }
+
+    .library-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .reader { min-width: 0; }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 9px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(244, 239, 228, .94);
+      backdrop-filter: blur(12px);
+    }
+
+    .tools { display: flex; align-items: center; gap: 8px; }
+    .tool-label { color: var(--muted); font-size: 13px; }
+
+    .icon-button, .button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--ink);
+      background: var(--white);
+      cursor: pointer;
+    }
+
+    .icon-button {
+      min-width: 42px;
+      padding: 0 10px;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .button { padding: 9px 14px; font-weight: 700; }
+    .button.primary { color: white; border-color: var(--accent); background: var(--accent); }
+    .button.danger { color: #9d2f24; border-color: #d9a59e; }
+    .button:hover, .icon-button:hover { border-color: var(--accent); }
+    .button.primary:hover { background: var(--accent-dark); }
+
+    .tone {
+      min-width: 54px;
+      text-align: center;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--chord);
+    }
+
+    input.capo-input {
+      width: 54px;
+      min-height: 42px;
+      padding: 8px 4px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .scroll-tools { min-width: 210px; }
+
+    input.scroll-range {
+      width: 130px;
+      height: 42px;
+      margin: 0;
+      padding: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    input.scroll-value {
+      width: 58px;
+      min-height: 42px;
+      padding: 8px 4px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--white);
+      color: var(--chord);
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .menu-button { display: none; }
+
+    .sheet {
+      width: min(880px, calc(100% - 36px));
+      margin: 32px auto 80px;
+      padding: clamp(24px, 5vw, 58px);
+      border: 1px solid #d9cfbd;
+      border-radius: 7px;
+      background: rgba(255, 253, 248, .96);
+      box-shadow: var(--shadow);
+    }
+
+    .song-head {
+      margin-bottom: 34px;
+      padding-bottom: 18px;
+      border-bottom: 2px solid var(--ink);
+    }
+
+    .song-head h2 {
+      margin: 0 0 6px;
+      font-family: Georgia, serif;
+      font-size: clamp(31px, 6vw, 52px);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .song-head p { margin: 0; color: var(--muted); font-size: 17px; }
+
+    .song-body {
+      overflow-wrap: anywhere;
+      font-family: "Courier New", monospace;
+      font-size: var(--song-size);
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .music-line { min-height: 1.45em; margin: 0 0 .3em; white-space: pre-wrap; }
+    .section-label { margin: 1.5em 0 .65em; color: var(--accent); font-family: Georgia, serif; font-weight: 700; }
+    .chord {
+      color: var(--chord);
+      font-size: 1.22em;
+      font-weight: 900;
+      margin-right: 2ch;
+    }
+
+    .empty {
+      min-height: 55vh;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .static-note {
+      margin: 0 0 28px;
+      padding: 12px;
+      border-left: 4px solid var(--accent);
+      color: var(--muted);
+      background: var(--paper);
+      font-size: 14px;
+    }
+
+    .static-song + .static-song {
+      margin-top: 44px;
+      padding-top: 36px;
+      border-top: 2px solid var(--line);
+    }
+
+    .static-song h2 { margin: 0 0 4px; font-family: Georgia, serif; }
+    .static-song p { margin: 0 0 22px; color: var(--muted); }
+    .static-song pre {
+      margin: 0;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font: 700 18px/1.55 "Courier New", monospace;
+    }
+
+    dialog {
+      width: min(720px, calc(100% - 24px));
+      max-height: calc(100vh - 24px);
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--paper);
+      box-shadow: 0 24px 80px rgba(34, 29, 22, .3);
+    }
+
+    dialog::backdrop { background: rgba(31, 28, 23, .58); }
+
+    .dialog-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dialog-head h2 { margin: 0; font-family: Georgia, serif; font-size: 23px; }
+
+    .song-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 110px;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; font-weight: 700; }
+    label.full { grid-column: 1 / -1; }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--ink);
+      background: var(--white);
+      outline: none;
+    }
+
+    input { min-height: 44px; padding: 10px 11px; }
+    textarea { min-height: 330px; padding: 13px; resize: vertical; font-family: "Courier New", monospace; line-height: 1.5; }
+    input:focus, textarea:focus { border-color: var(--accent); }
+
+    .dialog-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding-top: 4px;
+    }
+
+    .right-actions { display: flex; gap: 8px; margin-left: auto; }
+    .file-input { display: none; }
+
+    .mobile-shade { display: none; }
+
+    @media (max-width: 760px) {
+      .app { display: block; }
+      .library {
+        position: fixed;
+        left: 0;
+        width: min(86vw, 330px);
+        transform: translateX(-105%);
+        transition: transform .2s ease;
+        box-shadow: var(--shadow);
+      }
+      body.library-open .library { transform: translateX(0); }
+      .mobile-shade {
+        position: fixed;
+        inset: 0;
+        z-index: 3;
+        background: rgba(31, 28, 23, .42);
+      }
+      body.library-open .mobile-shade { display: block; }
+      .menu-button { display: inline-grid; place-items: center; }
+      .toolbar { padding: 8px 10px; flex-wrap: wrap; }
+      .tool-label { display: none; }
+      .tools { gap: 5px; }
+      .toolbar .tools { width: 100%; justify-content: center; }
+      .icon-button { min-width: 40px; min-height: 40px; }
+      .sheet { width: calc(100% - 16px); margin: 10px auto 56px; padding: 24px 17px; }
+      .song-head { margin-bottom: 24px; }
+      .song-form { grid-template-columns: 1fr; }
+      label.full, .dialog-actions { grid-column: auto; }
+      textarea { min-height: 42vh; }
+    }
+
+    @media print {
+      .library, .toolbar { display: none; }
+      .app { display: block; }
+      .sheet { width: 100%; margin: 0; padding: 0; border: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="library" aria-label="Repertorio">
+      <div class="brand">
+        <h1>Cifras Offline</h1>
+        <button class="icon-button" id="closeLibrary" title="Fechar repertorio" aria-label="Fechar repertorio">&times;</button>
+      </div>
+      <div class="search-wrap">
+        <input class="search" id="search" type="search" placeholder="Buscar musica ou artista" autocomplete="off">
+      </div>
+      <div class="song-list" id="songList"></div>
+      <div class="library-actions">
+        <button class="button" id="importButton">Importar</button>
+        <button class="button" id="exportButton">Exportar</button>
+        <input class="file-input" id="fileInput" type="file" accept="application/json,.json">
+      </div>
+    </aside>
+
+    <button class="mobile-shade" id="mobileShade" aria-label="Fechar repertorio"></button>
+
+    <main class="reader">
+      <header class="toolbar">
+        <div class="tools">
+          <button class="icon-button menu-button" id="openLibrary" title="Abrir repertorio" aria-label="Abrir repertorio">&#9776;</button>
+          <span class="tool-label">Tom real</span>
+          <button class="icon-button" id="toneDown" title="Baixar meio tom" aria-label="Baixar meio tom">&minus;</button>
+          <span class="tone" id="toneValue">C</span>
+          <button class="icon-button" id="toneUp" title="Subir meio tom" aria-label="Subir meio tom">+</button>
+          <button class="icon-button" id="toneReset" title="Voltar ao tom original" aria-label="Voltar ao tom original">&#8634;</button>
+          <label class="tool-label" for="capoInput">Capo</label>
+          <input class="capo-input" id="capoInput" type="number" min="0" max="11" step="1" value="0" inputmode="numeric" aria-label="Traste do capo">
+        </div>
+        <div class="tools scroll-tools">
+          <label class="tool-label" for="scrollSpeed">Rolagem</label>
+          <input class="scroll-range" id="scrollSpeed" type="range" min="0" max="100" step="1" value="0" aria-label="Velocidade da rolagem automática">
+          <input class="scroll-value" id="scrollSpeedValue" type="number" min="0" max="100" step="1" value="0" inputmode="numeric" aria-label="Digitar velocidade da rolagem automática">
+        </div>
+        <div class="tools">
+          <button class="icon-button" id="fontDown" title="Diminuir letra" aria-label="Diminuir letra">A&minus;</button>
+          <button class="icon-button" id="fontUp" title="Aumentar letra" aria-label="Aumentar letra">A+</button>
+          <button class="icon-button" id="editSong" title="Editar musica" aria-label="Editar musica">&#9998;</button>
+          <button class="button primary" id="newSong">Nova</button>
+        </div>
+      </header>
+
+      <article class="sheet" id="sheet">
+        <div class="static-note">Visualização simples. Abra no Safari para usar troca de tom, capo e edição.</div>
+        <section class="static-song">
+          <h2>A Casa É Sua</h2>
+          <p>Casa Worship · Tom G</p>
+          <pre>[Verso]
+[G] Você é bem-vindo aqui
+[Em7] A casa é sua, pode entrar
+[C9] Me esvazio de mim
+[G] [C/G] Me esvazio de mim
+
+[G] Sopra o Teu vento aqui
+[Em7] Toma o Teu trono, vem reinar
+[C9] Nós queremos Te ouvir
+[G] [C/G] Nós queremos Te ouvir
+
+[Refrão]
+[G] Essa casa é Sua casa
+[C9] [D4] [Em7] Nós deixamos ela pra Você, Jesus
+[Bm7] Essa casa é Sua casa
+[C9] [D4] [Em7] Nós deixamos ela pra Você, Jesus
+
+[Segunda Parte]
+[Bm7] Apareça
+[C9] Que o Teu nome cresça
+[Am7] Enche este lugar
+[G] Enche este lugar
+
+[Bm7] Apareça
+[C9] Que o Teu nome cresça
+[Am7] Vem me incendiar
+[G] Vem me incendiar</pre>
+        </section>
+
+        <section class="static-song">
+          <h2>Luz do Mundo</h2>
+          <p>Ministério de Louvor IECVP · Tom G</p>
+          <pre>[Verso 1]
+[G] Luz do [D] mundo [Am7] vieste à [C] terra
+[G] Pra que eu pudesse [D] te [C] ver
+[G] Tua beleza [D] me leva [Am7] a adorar-[C]Te
+[G] Quero contigo [D] vi[C]ver
+
+[Refrão]
+[G] Vim para adorar-Te
+[D] Vim para prostrar-me
+[G] Vim para dizer que és meu [C] Deus
+[G] És totalmente amável
+[D] Totalmente digno
+[G] Tão maravilhoso para [C] mim
+
+[Verso 2]
+[G] Eterno rei [D] exaltado [Am7] nas al[C]turas
+[G] Glorioso [D] nos [C] céus
+[G] Humilde vieste [D] à terra [Am7] que cri[C]aste
+[G] E por amor [D] pobre se [C] fez
+
+[Ponte]
+[D] Eu nunca [G] saberei o [C] preço
+[D] Dos meus [G] pecados lá na [C] cruz</pre>
+        </section>
+      </article>
+    </main>
+  </div>
+
+  <dialog id="songDialog">
+    <div class="dialog-head">
+      <h2 id="dialogTitle">Nova musica</h2>
+      <button class="icon-button" id="closeDialog" type="button" title="Fechar" aria-label="Fechar">&times;</button>
+    </div>
+    <form class="song-form" id="songForm">
+      <label>
+        Musica
+        <input id="songTitle" required maxlength="100">
+      </label>
+      <label>
+        Artista
+        <input id="songArtist" maxlength="100">
+      </label>
+      <label>
+        Tom original
+        <input id="songKey" required maxlength="3" placeholder="C">
+      </label>
+      <label class="full">
+        Letra com cifras entre colchetes
+        <textarea id="songContent" required spellcheck="false" placeholder="[C]Primeira frase da [G]musica&#10;&#10;[Am]Segunda frase em [F]outro acorde"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button class="button danger" id="deleteSong" type="button">Excluir</button>
+        <div class="right-actions">
+          <button class="button" id="cancelDialog" type="button">Cancelar</button>
+          <button class="button primary" type="submit">Aplicar</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      const NOTES_SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+      const NOTE_INDEX = { C: 0, "B#": 0, "C#": 1, Db: 1, D: 2, "D#": 3, Eb: 3, E: 4, Fb: 4, "E#": 5, F: 5, "F#": 6, Gb: 6, G: 7, "G#": 8, Ab: 8, A: 9, "A#": 10, Bb: 10, B: 11, Cb: 11 };
+
+      const luzDoMundoSong = {
+        id: "luz-do-mundo-iecvp",
+        title: "Luz do Mundo",
+        artist: "Ministério de Louvor IECVP",
+        key: "G",
+        content: `[Verso 1]
+[G]Luz do [D]mundo [Am7]vieste à [C]terra
+[G]Pra que eu pudesse [D]te [C]ver
+[G]Tua beleza [D]me leva [Am7]a adorar-[C]Te
+[G]Quero contigo [D]vi[C]ver
+
+[Refrão]
+[G]Vim para adorar-Te
+[D]Vim para prostrar-me
+[G]Vim para dizer que és meu [C]Deus
+[G]És totalmente amável
+[D]Totalmente digno
+[G]Tão maravilhoso para [C]mim
+
+[Verso 2]
+[G]Eterno rei [D]exaltado [Am7]nas al[C]turas
+[G]Glorioso [D]nos [C]céus
+[G]Humilde vieste [D]à terra [Am7]que cri[C]aste
+[G]E por amor [D]pobre se [C]fez
+
+[Refrão]
+[G]Vim para adorar-Te
+[D]Vim para prostrar-me
+[G]Vim para dizer que és meu [C]Deus
+[G]És totalmente amável
+[D]Totalmente digno
+[G]Tão maravilhoso para [C]mim
+
+[Ponte]
+[D]Eu nunca [G]saberei o [C]preço
+[D]Dos meus [G]pecados lá na [C]cruz
+
+[D]Eu nunca [G]saberei o [C]preço
+[D]Dos meus [G]pecados lá na [C]cruz
+
+[Refrão]
+[G]Vim para adorar-Te
+[D]Vim para prostrar-me
+[G]Vim para dizer que és meu [C]Deus
+[G]És totalmente amável
+[D]Totalmente digno
+[G]Tão maravilhoso para [C]mim
+
+`
+      };
+
+      const casaESuaSong = {
+        id: "a-casa-e-sua-casa-worship",
+        title: "A Casa É Sua",
+        artist: "Casa Worship",
+        key: "G",
+        content: `[Verso]
+
+[G][Em][C][G]
+[C][D][Em][Bm]
+[C][Am][G][Bm]
+
+[G]Você é bem-vindo aqui
+[Em]A casa é sua, pode entrar
+[C]Me esvazio de mim
+[G]Me esvazio de mim
+
+[G]Sopra o Teu vento aqui
+[Em]Toma o Teu trono, vem reinar
+[C]Nós queremos Te ouvir
+[G]Nós queremos Te ouvir
+
+[C9]Essa casa é Sua casa
+Nós deixamos [D4] ela pra [Em] Você, [Bm]Jesus
+[C]Essa casa é Sua casa
+Nós deixamos [D] ela pra [Em]Você, [Bm7]Jesus
+
+******* 2 ********
+[C]Apareça Que o Teu nome [Am]cresça
+Enche este lugar [G] Enche este lugar [Bm7]
+
+[C]Apareça Que o Teu nome [Am]cresça
+Enche este lugar [G] Vem me incendiar [Bm7]
+******* 2 ********
+
+[C9]Essa casa é Sua casa
+Nós deixamos [D4] ela pra [Em] Você, [Bm]Jesus
+[C]Essa casa é Sua casa
+Nós deixamos [D] ela pra [Em]Você, [Bm7]Jesus`
+
+      };
+
+      const aBencaoSong = {
+        id: "a-bencao-gabriel-guedes",
+        title: "A Bênção",
+        artist: "Gabriel Guedes",
+        key: "E",
+        content: `[Intro]
+[C#m7]  [A7M]  [E]  [B4]  [B]
+
+[Primeira Parte]
+[E]Que o Senhor te [A]abençoe
+[E]E faça [B]brilhar seu rosto em [C#m7]ti
+Que conceda [A]Sua [E]graça
+[B]E te dê a [E]paz
+
+[Refrão]
+[C#m]Amém, [A7M]amém, [E/B]amém [B4]
+[C#m]Amém, [A7M]amém, [E/B]amém [B4]
+
+[Primeira Parte]
+[E]Que o Senhor te [A]abençoe
+[E]E faça [B]brilhar seu rosto em [C#m7]ti
+Que conceda [A]Sua [E]graça
+[B]E te dê a [E]paz
+
+[Refrão]
+[C#m]Amém, [A7M]amém, [E/B]amém [B4]
+[C#m]Amém, [A7M]amém, [E/B]amém [B4]
+
+[Segunda Parte 4x]
+[C#m]Que a bênção se derrame
+[A]Até mil gerações
+[E/G#]Tua família e teus filhos
+[B]E os filhos dos teus filhos
+
+[C#m]Que a bênção se derrame
+[A]Até mil gerações
+[E/G#]Tua família e teus filhos
+[B]E os filhos dos teus filhos
+
+[Ponte]
+[C#m]Sua presença te acompanhe
+[A]Por detrás e por diante
+[E]Do teu lado e em ti
+[B]É contigo, é por ti
+[C#m]E de dia, e de noite
+[A]Tua entrada e saída
+[E/G#]Em teu riso, em teu choro
+[B]É contigo, é por ti
+
+4x
+[C#m]É contigo, é por ti
+[A]É contigo, é por ti
+[E/G#]É contigo, é por ti
+[B]É contigo, é por ti
+
+[Refrão Final]
+[C#m]Amém, [A7M]amém, [E/B]amém [B4]
+[C#m]Amém, [A7M]amém, [E/B]amém [B4]`
+      };
+
+      const deixaQueimarSong = {
+        id: "deixa-queimar-alessandro-vilas-boas",
+        title: "Deixa Queimar",
+        artist: "Alessandro Vilas Boas",
+        key: "A",
+        content: `[Progressão - repetir]
+[A]  [E]  [F#m]  [D]
+
+[Verso 1]
+[A]Ouvi o meu Senhor bater na porta
+[E]E o meu coração queimou
+[F#m]Ouvi o meu Senhor bater na porta
+[D]E o meu coração queimou
+
+[Pré-Refrão]
+[A]Eu não vou parar
+[E]Gastarei minha vida aos Teus pés
+[F#m]Eu não vou parar
+[D]Gastarei minha vida aos Teus pés
+
+[Verso 1]
+[A]Ouvi o meu Senhor bater na porta
+[E]E o meu coração queimou
+[F#m]Ouvi o meu Senhor bater na porta
+[D]E o meu coração queimou
+
+[Pré-Refrão]
+[A]Eu não vou parar
+[E]Gastarei minha vida aos Teus pés
+[F#m]Eu não vou parar
+[D]Gastarei minha vida aos Teus pés
+
+[Interlúdio]
+[A]Lárara, lárarararara
+[E]Lárara, lárarararara
+[F#m]Lárara, lárarararara
+[D]Lárara, lárarararara
+
+[Verso 2]
+[A]Eu tenho fogo cerrado em meu peito
+[E]Que não me dá descanso, eu não tenho descanso
+[F#m]Eu tenho fogo cerrado em meu peito
+[D]Que não me dá descanso, eu não tenho descanso
+
+[Refrão]
+[A]Deixa queimar, deixa queimar
+[E]Deixa queimar, deixa queimar
+[F#m]Deixa queimar, deixa queimar
+[D]Deixa queimar, deixa queimar
+[A]Deixa queimar, deixa queimar
+[E]Deixa queimar, deixa queimar
+[F#m]Deixa queimar, deixa queimar
+[D]Deixa queimar, deixa queimar
+
+[Interlúdio]
+[A]Lárara, lárarararara
+[E]Lárara, lárarararara
+[F#m]Lárara, lárarararara
+[D]Lárara, lárarararara
+
+[Refrão Final]
+[A]Deixa queimar, deixa queimar
+[E]Deixa queimar, deixa queimar
+[F#m]Deixa queimar, deixa queimar
+[D]Deixa queimar, deixa queimar
+[A]Deixa queimar, deixa queimar
+[E]Deixa queimar, deixa queimar
+[F#m]Deixa queimar, deixa queimar
+[D]Deixa queimar, deixa queimar`
+      };
+
+      const dignoDeTudoSong = {
+        id: "digno-de-tudo-fernanda-ferro",
+        title: "Digno de Tudo",
+        artist: "Fernanda Ferro",
+        key: "C",
+        content: `[Intro]
+[F]  [G]  [F]  [G]
+
+[Primeira Parte  2x]
+[F]Os santos e os [G]anjos
+[F]Se prostram aos Teus [G]pés
+[F]Os anciãos rendem suas [G]
+[C/E]Coroas ao [F]Cordeiro
+[G]E a Ele [C]cantam
+
+[Refrão 2X ]
+[C]Tu és digno de tudo
+[G]Tu és digno de tudo
+[F]Pois tudo vem de Ti
+[G]Tudo é para Ti
+[C]Tua é a glória
+
+[Ponte 1   2X]
+[C]Dia e noite suba a Ti nossa [Em]adoração
+[Am]Dia e noite suba a Ti nossa [F]adoração
+[C/G]Dia e noite suba a Ti nossa [G]adoração
+[Dm7]Dia e noite suba a Ti nossa [F]adoração
+
+[Ponte 2   2X]
+[C]Te exaltamos
+[Em]Te exaltamos
+[F]Te exaltamos [G]
+[C]Oh, Senhor
+
+[Refrão Final 4X]
+[C]Tu és digno de tudo
+[G]Tu és digno de tudo
+[F]Pois tudo vem de Ti
+[G]Tudo é para Ti
+[C]Tua é a glória
+
+`
+      };
+
+      const queroJesusSong = {
+        id: "quero-jesus-central-3",
+        title: "Quero Jesus",
+        artist: "Central 3 - forma E, capo 1 para tom F",
+        key: "E",
+        content: `[Intro]
+
+
+ 8x
+[E]Quero Jesus, quero [B4]Jesus [B]
+Nada [C#m] mais satisfaz, nada mais [A]satisfaz 
+
+[E]Eu não quero ninguém mais
+[B]Eu não quero nada mais
+[C#m7]Tu és meu tudo
+[A]Tu és meu tudo
+
+
+`
+      };
+
+      const acendeUmFogoSong = {
+        id: "acende-um-fogo-filipe-souza",
+        title: "Acende Um Fogo",
+        artist: "Filipe Souza",
+        key: "G",
+        content: `[Verso]
+[G]Não há outro [C9]lugar
+Onde eu queira [Em7]estar
+Não há outro lugar
+[C9]Do que em Teu amor
+Em Teu amor
+
+[Refrão]
+[G]Acende um fogo em meu [C9]coração
+Que não resistirei
+[Em7]E não controlarei
+
+Eu quero mais de Ti, [C9]Deus
+Eu quero mais de Ti, [G]Deus`
+      };
+
+      const santoEspiritoSong = {
+        id: "santo-espirito",
+        title: "Santo Espírito",
+        artist: "",
+        key: "G",
+        content: `[Refrão]
+[G]Santo Espírito, és bem-vindo aqui
+[C]Vem inundar, encher esse [Am7]lugar
+[G]É o desejo do meu coração
+[C]Sermos inundados por Tua [Am7]glória, Senhor
+
+[G]Santo Espírito, és bem-vindo aqui
+[C]Vem inundar, encher esse [Am7]lugar
+[G]É o desejo do meu coração
+[C]Sermos inundados por Tua [Am7]glória
+[G]Senhor, Tua glória [C]Senhor
+[G]Tua [C]glória
+
+[Primeira Parte]
+[G]Não há nada igual
+[C]Não há nada melhor
+[G]A que se compara à esperança viva
+[C]Tua presença
+
+[G]Eu provei e vi
+[C]O mais doce amor
+Que liberta o meu ser
+[G]E a vergonha desfaz
+[C]Tua presença
+
+[Refrão]
+[G]Santo Espírito, és bem-vindo aqui
+[C]Vem inundar, encher esse [Am7]lugar
+[G]É o desejo do meu coração
+[C]Sermos inundados por Tua [Am7]glória
+
+[G]Santo Espírito, és bem-vindo aqui
+[C]Vem inundar, encher esse [Am7]lugar
+[G]É o desejo do meu coração
+[C]Sermos inundados por Tua [Am7]glória, Senhor
+
+
+[Segunda Parte]
+[C]Vamos [G]provar
+[Am7]Quão real é Tua [G]presença
+[C]Vamos [G]provar
+[Am7]A Tua glória e [G]bondade
+
+[C]Vamos [G]provar
+[Am7]Quão real é Tua [G]presença
+[C]Vamos [G]provar
+[Am7]A Tua glória e [G]bondade
+
+[C]Vamos [G]provar
+[Am7]Quão real é Tua [G]presença
+[C]Vamos [G]provar
+[Am7]A Tua glória e [G]bondade
+
+[C]Vamos [G]provar
+[Am7]Quão real é Tua [G]presença
+[C]Vamos [G]provar
+[Am7]A Tua glória e [G]bondade, [C]Senhor
+
+[Refrão]
+[G]Santo Espírito, és bem-vindo aqui
+[C]Vem inundar, encher esse [Am7]lugar
+[G]É o desejo do meu coração
+[C]Sermos inundados por Tua [Am7]glória
+
+[G]Santo Espírito, és bem-vindo aqui
+[C]Vem inundar, encher esse [Am7]lugar
+[G]É o desejo do meu coração
+[C]Sermos inundados por Tua [Am7]glória, Senhor [G]`
+      };
+
+      const defaultSongs = [
+        casaESuaSong,
+        luzDoMundoSong,
+        aBencaoSong,
+        deixaQueimarSong,
+        dignoDeTudoSong,
+        queroJesusSong,
+        acendeUmFogoSong,
+        santoEspiritoSong
+      ];
+
+      const state = {
+        songs: [],
+        selectedId: null,
+        transpose: 0,
+        capo: 0,
+        fontSize: 22,
+        scrollSpeed: 0,
+        editingId: null
+      };
+
+      const el = id => document.getElementById(id);
+      let scrollFrame = 0;
+      let previousScrollTime = 0;
+      let pendingScrollPixels = 0;
+
+      function autoScroll(timestamp) {
+        scrollFrame = 0;
+        if (state.scrollSpeed === 0) return;
+
+        if (previousScrollTime) {
+          const elapsed = Math.min(timestamp - previousScrollTime, 100) / 1000;
+          pendingScrollPixels += state.scrollSpeed * elapsed;
+          const wholePixels = Math.floor(pendingScrollPixels);
+          if (wholePixels > 0) {
+            window.scrollBy(0, wholePixels);
+            pendingScrollPixels -= wholePixels;
+          }
+        }
+        previousScrollTime = timestamp;
+
+        const reachedEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+        if (reachedEnd) {
+          setScrollSpeed(0);
+          return;
+        }
+        scrollFrame = requestAnimationFrame(autoScroll);
+      }
+
+      function setScrollSpeed(value) {
+        state.scrollSpeed = Math.min(100, Math.max(0, Number(value) || 0));
+        el("scrollSpeed").value = state.scrollSpeed;
+        el("scrollSpeedValue").value = state.scrollSpeed;
+
+        if (state.scrollSpeed === 0) {
+          if (scrollFrame) cancelAnimationFrame(scrollFrame);
+          scrollFrame = 0;
+          previousScrollTime = 0;
+          pendingScrollPixels = 0;
+        } else if (!scrollFrame) {
+          previousScrollTime = 0;
+          pendingScrollPixels = 0;
+          scrollFrame = requestAnimationFrame(autoScroll);
+        }
+      }
+
+      function loadSongs() {
+        state.songs = defaultSongs.map(song => ({ ...song }));
+        state.selectedId = state.songs[0]?.id || null;
+      }
+
+      function currentSong() {
+        return state.songs.find(song => song.id === state.selectedId);
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function transposeChord(chord, amount) {
+        if (!amount) return chord;
+        return chord.replace(/(^|\/)([A-G])([#b]?)/g, (match, prefix, note, accidental) => {
+          const source = note + accidental;
+          if (!(source in NOTE_INDEX)) return match;
+          const index = (NOTE_INDEX[source] + amount + 120) % 12;
+          return prefix + NOTES_SHARP[index];
+        });
+      }
+
+      function transposeKey(key, amount) {
+        const match = String(key || "").trim().match(/^([A-G])([#b]?)(.*)$/);
+        if (!match) return key || "-";
+        const note = match[1] + match[2];
+        const index = (NOTE_INDEX[note] + amount + 120) % 12;
+        return NOTES_SHARP[index] + match[3];
+      }
+
+      function renderContent(content) {
+        return String(content || "").split("\n").map(line => {
+          const trimmed = line.trim();
+          if (/^\[[^\]]+\]$/.test(trimmed) && !/^\[[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|\d|\/|\(|\)|#|b)*\]$/i.test(trimmed)) {
+            return `<div class="section-label">${escapeHtml(trimmed.slice(1, -1))}</div>`;
+          }
+
+          let html = "";
+          let lastIndex = 0;
+          const chordPattern = /\[([^\]]+)\]/g;
+          let match;
+          while ((match = chordPattern.exec(line))) {
+            html += escapeHtml(line.slice(lastIndex, match.index));
+            html += `<span class="chord">${escapeHtml(transposeChord(match[1], state.transpose))}</span>`;
+            lastIndex = match.index + match[0].length;
+          }
+          html += escapeHtml(line.slice(lastIndex));
+          return `<div class="music-line">${html || "&nbsp;"}</div>`;
+        }).join("");
+      }
+
+      function renderSongList() {
+        const term = el("search").value.trim().toLocaleLowerCase("pt-BR");
+        const songs = state.songs.filter(song => `${song.title} ${song.artist}`.toLocaleLowerCase("pt-BR").includes(term));
+        el("songList").innerHTML = songs.length ? songs.map(song => `
+          <button class="song-item ${song.id === state.selectedId ? "active" : ""}" data-id="${escapeHtml(song.id)}">
+            <strong>${escapeHtml(song.title)}</strong>
+            <span>${escapeHtml(song.artist || "Sem artista")} · Tom ${escapeHtml(song.key)}</span>
+          </button>
+        `).join("") : '<div class="empty">Nenhuma musica encontrada.</div>';
+
+        el("songList").querySelectorAll(".song-item").forEach(button => {
+          button.addEventListener("click", () => {
+            state.selectedId = button.dataset.id;
+            state.transpose = 0;
+            closeLibrary();
+            render();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+        });
+      }
+
+      function renderSong() {
+        const song = currentSong();
+        document.documentElement.style.setProperty("--song-size", `${state.fontSize}px`);
+        el("capoInput").value = state.capo;
+        if (!song) {
+          el("sheet").innerHTML = '<div class="empty">Adicione uma musica para comecar.</div>';
+          el("toneValue").textContent = "-";
+          return;
+        }
+        const displayedKey = transposeKey(song.key, state.transpose);
+        const soundingKey = transposeKey(song.key, state.transpose + state.capo);
+        el("toneValue").textContent = soundingKey;
+        el("sheet").innerHTML = `
+          <header class="song-head">
+            <h2>${escapeHtml(song.title)}</h2>
+            <p>${escapeHtml(song.artist || "Sem artista")} · Forma: ${escapeHtml(displayedKey)} · Capo: ${state.capo} · Tom real: ${escapeHtml(soundingKey)}</p>
+          </header>
+          <div class="song-body">${renderContent(song.content)}</div>
+        `;
+      }
+
+      function render() {
+        renderSongList();
+        renderSong();
+      }
+
+      function openLibrary() { document.body.classList.add("library-open"); }
+      function closeLibrary() { document.body.classList.remove("library-open"); }
+
+      function openEditor(song = null) {
+        state.editingId = song?.id || null;
+        el("dialogTitle").textContent = song ? "Editar musica" : "Nova musica";
+        el("songTitle").value = song?.title || "";
+        el("songArtist").value = song?.artist || "";
+        el("songKey").value = song?.key || "C";
+        el("songContent").value = song?.content || "";
+        el("deleteSong").hidden = !song;
+        el("songDialog").showModal();
+        setTimeout(() => el("songTitle").focus(), 0);
+      }
+
+      function closeEditor() { el("songDialog").close(); }
+
+      el("toneDown").addEventListener("click", () => { state.transpose -= 1; renderSong(); });
+      el("toneUp").addEventListener("click", () => { state.transpose += 1; renderSong(); });
+      el("toneReset").addEventListener("click", () => { state.transpose = 0; renderSong(); });
+      el("capoInput").addEventListener("input", event => {
+        state.capo = Math.min(11, Math.max(0, Number(event.target.value) || 0));
+        renderSong();
+      });
+      el("scrollSpeed").addEventListener("input", event => setScrollSpeed(event.target.value));
+      el("scrollSpeedValue").addEventListener("change", event => setScrollSpeed(event.target.value));
+      el("fontDown").addEventListener("click", () => {
+        state.fontSize = Math.max(14, state.fontSize - 2);
+        renderSong();
+      });
+      el("fontUp").addEventListener("click", () => {
+        state.fontSize = Math.min(40, state.fontSize + 2);
+        renderSong();
+      });
+      el("newSong").addEventListener("click", () => openEditor());
+      el("editSong").addEventListener("click", () => currentSong() && openEditor(currentSong()));
+      el("closeDialog").addEventListener("click", closeEditor);
+      el("cancelDialog").addEventListener("click", closeEditor);
+      el("openLibrary").addEventListener("click", openLibrary);
+      el("closeLibrary").addEventListener("click", closeLibrary);
+      el("mobileShade").addEventListener("click", closeLibrary);
+      el("search").addEventListener("input", renderSongList);
+
+      el("songForm").addEventListener("submit", event => {
+        event.preventDefault();
+        const key = el("songKey").value.trim();
+        if (!/^([A-G])([#b])?(m)?$/.test(key)) {
+          el("songKey").setCustomValidity("Use um tom como C, F#, Bb ou Am.");
+          el("songKey").reportValidity();
+          return;
+        }
+        el("songKey").setCustomValidity("");
+
+        const song = {
+          id: state.editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+          title: el("songTitle").value.trim(),
+          artist: el("songArtist").value.trim(),
+          key,
+          content: el("songContent").value.replace(/\r\n/g, "\n").trim()
+        };
+
+        if (state.editingId) {
+          state.songs = state.songs.map(item => item.id === state.editingId ? song : item);
+        } else {
+          state.songs.unshift(song);
+        }
+        state.selectedId = song.id;
+        state.transpose = 0;
+        closeEditor();
+        render();
+      });
+
+      el("deleteSong").addEventListener("click", () => {
+        const song = currentSong();
+        if (!song || !confirm(`Excluir "${song.title}"?`)) return;
+        state.songs = state.songs.filter(item => item.id !== song.id);
+        state.selectedId = state.songs[0]?.id || null;
+        state.transpose = 0;
+        closeEditor();
+        render();
+      });
+
+      el("exportButton").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(state.songs, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "cifras-offline.json";
+        anchor.click();
+        URL.revokeObjectURL(url);
+      });
+
+      el("importButton").addEventListener("click", () => el("fileInput").click());
+      el("fileInput").addEventListener("change", async event => {
+        const file = event.target.files[0];
+        if (!file) return;
+        try {
+          const songs = JSON.parse(await file.text());
+          if (!Array.isArray(songs) || songs.some(song => !song.title || !song.content || !song.key)) throw new Error();
+          state.songs = songs.map((song, index) => ({ ...song, id: song.id || `${Date.now()}-${index}` }));
+          state.selectedId = state.songs[0]?.id || null;
+          state.transpose = 0;
+          render();
+        } catch {
+          alert("Arquivo invalido. Importe um JSON exportado por esta pagina.");
+        } finally {
+          event.target.value = "";
+        }
+      });
+
+      loadSongs();
+      render();
+    })();
+  </script>
+</body>
+</html>
