@@ -229,6 +229,44 @@
 
     .song-head p { margin: 0; color: var(--muted); font-size: 17px; }
 
+    .sequence-summary {
+      margin: -12px 0 30px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sequence-toggle { min-width: 174px; }
+
+    .sequence-panel {
+      margin-top: 16px;
+      padding: 16px 0 2px;
+      border-top: 1px solid var(--line);
+    }
+
+    .sequence-panel h3 {
+      margin: 0 0 12px;
+      font-family: Georgia, serif;
+      font-size: 18px;
+    }
+
+    .sequence-list { display: grid; gap: 10px; }
+    .sequence-line {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .sequence-number { color: var(--muted); font-size: 13px; font-weight: 800; }
+    .sequence-chords {
+      color: var(--chord);
+      font-family: "Courier New", monospace;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
     .song-body {
       overflow-wrap: anywhere;
       font-family: "Courier New", monospace;
@@ -1287,6 +1325,7 @@ Daquele que primeiro me amou [A] [E]
         capo: 0,
         fontSize: 22,
         scrollSpeed: 0,
+        sequenceVisible: false,
         editingId: null
       };
 
@@ -1371,6 +1410,59 @@ Daquele que primeiro me amou [A] [E]
         return NOTES_SHARP[index] + match[3];
       }
 
+      function compactChordCycle(chords) {
+        const compact = chords.filter((chord, index) => chord !== chords[index - 1]);
+        for (let size = 2; size <= Math.min(8, Math.floor(compact.length / 2)); size += 1) {
+          const base = compact.slice(0, size);
+          let repeatedLength = size;
+          while (
+            repeatedLength + size <= compact.length &&
+            base.every((chord, index) => chord === compact[repeatedLength + index])
+          ) {
+            repeatedLength += size;
+          }
+          if (repeatedLength >= size * 2) {
+            const tail = compact.slice(repeatedLength);
+            const tailRepeatsBase = tail.every((chord, index) => chord === base[index]);
+            return tailRepeatsBase ? base : base.concat(tail);
+          }
+        }
+        return compact;
+      }
+
+      function extractChordSequences(content) {
+        const chordToken = /^[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|M|\d|\/|\(|\)|#|b)*$/i;
+        const sequences = [];
+        const seen = new Set();
+
+        String(content || "").split(/\n\s*\n/).forEach(block => {
+          const chords = [...block.matchAll(/\[([^\]]+)\]/g)]
+            .map(match => match[1].trim())
+            .filter(chord => chordToken.test(chord));
+          const sequence = compactChordCycle(chords);
+          if (sequence.length < 2 || sequence.length > 8) return;
+          const signature = sequence.join("|");
+          if (seen.has(signature)) return;
+          seen.add(signature);
+          sequences.push(sequence);
+        });
+
+        return sequences;
+      }
+
+      function renderChordSequences(content) {
+        const sequences = extractChordSequences(content);
+        if (!sequences.length) {
+          return '<div class="sequence-line"><span class="sequence-chords">Nenhuma sequência encontrada.</span></div>';
+        }
+        return sequences.map((sequence, index) => `
+          <div class="sequence-line">
+            <span class="sequence-number">${index + 1}.</span>
+            <span class="sequence-chords">${sequence.map(chord => escapeHtml(transposeChord(chord, state.transpose))).join(" &rarr; ")}</span>
+          </div>
+        `).join("");
+      }
+
       function renderContent(content) {
         return String(content || "").split("\n").map(line => {
           const trimmed = line.trim();
@@ -1406,6 +1498,7 @@ Daquele que primeiro me amou [A] [E]
           button.addEventListener("click", () => {
             state.selectedId = button.dataset.id;
             state.transpose = 0;
+            state.sequenceVisible = false;
             closeLibrary();
             render();
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1430,6 +1523,15 @@ Daquele que primeiro me amou [A] [E]
             <h2>${escapeHtml(song.title)}</h2>
             <p>${escapeHtml(song.artist || "Sem artista")} · Forma: ${escapeHtml(displayedKey)} · Capo: ${state.capo} · Tom real: ${escapeHtml(soundingKey)}</p>
           </header>
+          <section class="sequence-summary">
+            <button class="button sequence-toggle" id="sequenceToggle" type="button" aria-expanded="${state.sequenceVisible}">
+              ${state.sequenceVisible ? "Ocultar sequências" : "Mostrar sequências"}
+            </button>
+            <div class="sequence-panel" ${state.sequenceVisible ? "" : "hidden"}>
+              <h3>Resumo de sequências</h3>
+              <div class="sequence-list">${renderChordSequences(song.content)}</div>
+            </div>
+          </section>
           <div class="song-body">${renderContent(song.content)}</div>
         `;
       }
@@ -1481,6 +1583,11 @@ Daquele que primeiro me amou [A] [E]
       el("closeLibrary").addEventListener("click", closeLibrary);
       el("mobileShade").addEventListener("click", closeLibrary);
       el("search").addEventListener("input", renderSongList);
+      el("sheet").addEventListener("click", event => {
+        if (!event.target.closest("#sequenceToggle")) return;
+        state.sequenceVisible = !state.sequenceVisible;
+        renderSong();
+      });
 
       el("songForm").addEventListener("submit", event => {
         event.preventDefault();
@@ -1507,6 +1614,7 @@ Daquele que primeiro me amou [A] [E]
         }
         state.selectedId = song.id;
         state.transpose = 0;
+        state.sequenceVisible = false;
         closeEditor();
         render();
       });
@@ -1517,6 +1625,7 @@ Daquele que primeiro me amou [A] [E]
         state.songs = state.songs.filter(item => item.id !== song.id);
         state.selectedId = state.songs[0]?.id || null;
         state.transpose = 0;
+        state.sequenceVisible = false;
         closeEditor();
         render();
       });
@@ -1541,6 +1650,7 @@ Daquele que primeiro me amou [A] [E]
           state.songs = songs.map((song, index) => ({ ...song, id: song.id || `${Date.now()}-${index}` }));
           state.selectedId = state.songs[0]?.id || null;
           state.transpose = 0;
+          state.sequenceVisible = false;
           render();
         } catch {
           alert("Arquivo invalido. Importe um JSON exportado por esta pagina.");
