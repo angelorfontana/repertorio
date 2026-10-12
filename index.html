@@ -1438,6 +1438,109 @@ Daquele que primeiro me amou [A] [E]
 [Em]  [Em7]  [E7(4/9)]  [Em]`
       };
 
+      const fogoEmTeusOlhosSong = {
+        id: "fogo-em-teus-olhos-louvor-iir",
+        title: "Fogo Em Teus Olhos",
+        artist: "Louvor IIR",
+        key: "Em",
+        content: `[Intro]
+[Em]  [C]  [Am]  [C]  [D]
+
+[Primeira Parte]
+[Em]Me aproximei, [C]permaneci
+[Am]O Teu olhar me consumiu
+[C]Eu sou todo [D]Teu
+
+[Em]Me aproximei, [C]permaneci
+[Am]O Teu olhar me consumiu
+[C]Eu sou todo [D]Teu
+
+[Refrão]
+[Em]O fogo em Teus [D]olhos
+[Am]Fez eu me apaixonar [C] [D]
+[Em]Queimou todos os outros [D]amores
+[Am]Queimou todos os outros [C]amores [D]
+
+[Primeira Parte]
+[Em]Me aproximei, [C]permaneci
+[Am]O Teu olhar me consumiu
+[C]Eu sou todo [D]Teu
+
+[Em]Me aproximei, [C]permaneci
+[A]O Teu olhar me consumiu
+[C]Eu sou todo [D]Teu
+
+[Refrão]
+[Em]O fogo em Teus [D]olhos
+[Am]Fez eu me apaixonar [C] [D]
+[Em]Queimou todos os outros [D]amores
+[Am]Queimou todos os outros [C]amores [D]
+
+[Em]O fogo em Teus [D]olhos
+[Am]Fez eu me apaixonar [C] [D]
+[Em]Queimou todos os outros [D]amores
+[Am]Queimou todos os outros [C]amores [D]
+[Em]Queimou todos os outros [D]amores
+[Am]Queimou todos os outros [B7]amores [D#º] [Em]
+
+[Interlúdio]
+[Em]  [D]  [Am]  [C]  [D]
+
+[Ponte]
+[Em]Eu ainda tenho fome
+[C]Eu ainda tenho lenha
+[Am]Pode vir queimar
+[C]Pode me [D]queimar
+
+[Em]Eu ainda tenho fome
+[C9]Eu ainda tenho lenha
+[Am]Pode vir queimar
+[C]Pode me [D]queimar
+
+[Em]Eu ainda tenho fome
+[D]Eu ainda tenho lenha
+[Am]Pode vir queimar
+[C]Pode me [D]queimar
+
+[Em]Eu ainda tenho fome
+[D]Eu ainda tenho lenha
+[Am]Pode vir queimar
+[C]Pode me [D]queimar
+
+[Refrão]
+[Em]O fogo em Teus [D]olhos
+[Am]Fez eu me apaixonar [C] [D]
+[Em]Queimou todos os outros [D]amores
+[Am]Queimou todos os outros [C]amores [D]
+
+[Em]O fogo em Teus [D]olhos
+[Am]Fez eu me apaixonar [C] [D]
+[Em]Queimou todos os outros [D]amores
+[Am]Queimou todos os outros [C]amores [D]
+
+[Ponte]
+[Em]Eu ainda tenho fome
+[D]Eu ainda tenho lenha
+[Am]Pode vir queimar
+[C]Pode me [D]queimar
+
+[Em]Eu ainda tenho fome
+[D]Eu ainda tenho lenha
+[Am]Pode vir queimar
+[C]Pode me [D]queimar
+
+[Final]
+[Em]Nos tornamos [C]responsáveis
+[Am]A chama não vai apagar [C] [D]
+[Em]Nos tornamos [C]responsáveis
+[Am]A chama não vai apagar [C] [D]
+
+[Em]Nos tornamos [C]responsáveis
+[Am]A chama não vai apagar [C] [D]
+[Em]Nos tornamos [C]responsáveis
+[Am]A chama não vai apagar [C] [D] [Em]`
+      };
+
       const defaultSongs = [
         casaESuaSong,
         luzDoMundoSong,
@@ -1452,7 +1555,8 @@ Daquele que primeiro me amou [A] [E]
         pequenaNuvemSong,
         soQueroVerVoceSong,
         euNavegareiSong,
-        aEleAGloriaSong
+        aEleAGloriaSong,
+        fogoEmTeusOlhosSong
       ];
 
       const state = {
@@ -1568,7 +1672,7 @@ Daquele que primeiro me amou [A] [E]
       }
 
       function extractChordSequences(content) {
-        const chordToken = /^[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|M|\d|\/|\(|\)|#|b)*$/i;
+        const chordToken = /^[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|M|\d|\/|\(|\)|#|b|º)*$/i;
         const sequences = [];
         const seen = new Set();
 
@@ -1603,7 +1707,7 @@ Daquele que primeiro me amou [A] [E]
       function renderContent(content) {
         return String(content || "").split("\n").map(line => {
           const trimmed = line.trim();
-          if (/^\[[^\]]+\]$/.test(trimmed) && !/^\[[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|\d|\/|\(|\)|#|b)*\]$/i.test(trimmed)) {
+          if (/^\[[^\]]+\]$/.test(trimmed) && !/^\[[A-G][#b]?(?:m|maj|min|dim|aug|sus|add|\d|\/|\(|\)|#|b|º)*\]$/i.test(trimmed)) {
             return `<div class="section-label">${escapeHtml(trimmed.slice(1, -1))}</div>`;
           }
 
