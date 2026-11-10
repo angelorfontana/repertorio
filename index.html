@@ -242,8 +242,9 @@
       z-index: 3;
       background: rgba(31, 28, 23, .42);
     }
-    .sequence-line { padding: 9px 0; border-bottom: 1px solid var(--line); }
-    .sequence-caption { display: block; color: var(--muted); font-size: 13px; margin-bottom: 2px; }
+    .sequence-line { padding: 7px 0; border-bottom: 1px solid var(--line); }
+    .sequence-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+    .sequence-caption { color: var(--muted); font-size: 11px; }
     .sequence-lyric { display: block; font-weight: 700; font-size: 14px; margin-top: 2px; }
     .sequence-return { grid-column: 1 / -1; font-size: 14px; color: var(--accent-dark); text-decoration: none; }
     .sequence-line:target { background: var(--paper); }
@@ -457,6 +458,13 @@
       .icon-button { min-width: 40px; min-height: 40px; }
       .sheet { width: calc(100% - 16px); margin: 10px auto 56px; padding: 24px 17px; }
       .song-head { margin-bottom: 24px; }
+      .summary-view .song-head { margin-bottom: 12px; }
+      .summary-view .song-head h2 { font-size: 22px; }
+      .summary-view .sequence-chords { font-size: calc(var(--song-size) - 6px); }
+      .summary-view .sequence-lyric { font-size: 13px; }
+      .summary-view .sequence-return { font-size: 13px; }
+      .summary-view .sequence-heading { gap: 2px 6px; }
+      .summary-view .sequence-caption { font-size: 10px; }
       .song-form { grid-template-columns: 1fr; }
       label.full, .dialog-actions { grid-column: auto; }
       textarea { min-height: 42vh; }
@@ -2078,8 +2086,9 @@ Entre [G]milhares e mi[D]lhares`
           const excerpt = entry.lyric.length > 55 ? entry.lyric.slice(0, 52).trimEnd() + "…" : entry.lyric;
           return `<div class="sequence-line" id="sequence-${index}">
             <span class="sequence-number">${index + 1}.</span>
-            <div><span class="sequence-caption">${escapeHtml(entry.section)}${repeat}</span>
+            <div><div class="sequence-heading">
             <span class="sequence-chords">${entry.chords.map(chord => escapeHtml(transposeChord(chord, state.transpose))).join(" &nbsp; ") || "—"}</span>
+            <span class="sequence-caption">${escapeHtml(entry.section)}${repeat}</span></div>
             <span class="sequence-lyric">${escapeHtml(excerpt)}</span></div>
           </div>`;
         }).join("");
