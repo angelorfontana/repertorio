@@ -224,6 +224,12 @@
       background: var(--paper);
     }
     .reader-nav .view-switch { display: flex; gap: 0; margin: 0 auto; }
+    .reader-nav .icon-button { flex: 0 0 40px; width: 40px; min-width: 40px; padding: 0; }
+    .icon-button:disabled { opacity: .4; cursor: default; }
+    .playlist-tools { flex: 1 1 240px; min-width: 0; }
+    .playlist-tools input { min-width: 0; }
+    .playlist-status { display: flex; justify-content: space-between; gap: 12px; }
+    .playlist-error { color: var(--accent-dark); font-size: 13px; }
     .view-switch button { border-radius: 0; }
     .view-switch button:first-child { border-radius: 6px 0 0 6px; }
     .view-switch button:last-child { border-radius: 0 6px 6px 0; }
@@ -452,6 +458,9 @@
       body.library-open .mobile-shade { display: block; }
       .menu-button { display: inline-grid; place-items: center; }
       .toolbar { padding: 8px 10px; flex-wrap: wrap; }
+      .reader-nav { gap: 4px; padding: 6px; }
+      .reader-nav .view-switch .button { padding: 9px 7px; font-size: 14px; }
+      .reader-nav .icon-button { flex-basis: 36px; width: 36px; min-width: 36px; }
       .tool-label { display: none; }
       .tools { gap: 5px; }
       .toolbar .tools { width: 100%; justify-content: center; }
@@ -503,13 +512,20 @@
     <main class="reader">
       <nav class="reader-nav" aria-label="Visualizacao">
         <button class="icon-button menu-button" id="openLibrary" title="Abrir repertorio" aria-label="Abrir repertorio" aria-expanded="false">&#9776;</button>
+        <button class="icon-button" id="previousSong" title="Música anterior da sequência" aria-label="Música anterior da sequência" disabled>&#8249;</button>
         <div class="view-switch" role="group" aria-label="Conteudo">
           <button class="button" id="musicView" aria-pressed="true">Música</button>
           <button class="button" id="summaryView" aria-pressed="false">Resumo</button>
         </div>
+        <button class="icon-button" id="nextSong" title="Próxima música da sequência" aria-label="Próxima música da sequência" disabled>&#8250;</button>
         <button class="icon-button" id="toggleTools" title="Mostrar ajustes" aria-label="Mostrar ajustes" aria-expanded="false" aria-controls="readerTools">&#9881;</button>
       </nav>
       <header class="toolbar" id="readerTools" hidden>
+        <label class="playlist-tools" for="playlistInput">
+          <span class="playlist-status"><span>Sequência de músicas</span><output id="playlistPosition"></output></span>
+          <input id="playlistInput" type="text" placeholder="1 4 5 6" autocomplete="off" spellcheck="false" aria-describedby="playlistError">
+          <span class="playlist-error" id="playlistError" role="status" hidden></span>
+        </label>
         <div class="tools">
           <span class="tool-label">Tom real</span>
           <button class="icon-button" id="toneDown" title="Baixar meio tom" aria-label="Baixar meio tom">&minus;</button>
@@ -2116,6 +2132,80 @@ Do que o [D/F#]ouro
 Melhor que a [Bm]vida é o [A]teu a[G]mor`
       };
 
+      const isaias9Song = {
+        id: "isaias-9",
+        title: "Isaías 9",
+        artist: "",
+        key: "C",
+        capo: 2,
+        content: `[Intro]
+[C]  [G4(6)]  [Am]
+[C]  [G4(6)]  [Am]
+
+[Primeira Parte]
+[C]Um me[G4(6)]nino nas[Am]ceu
+Como um [C]filho [G4(6)]se nos [Am]deu
+Ele é o próprio [C]Deus
+E [G4(6)]vive em [Am]mim
+Debaixo de suas [C]asas
+Eu [G4(6)]me escon[Am]di
+
+[Pré-Refrão]
+[F7M]E o Seu nome [Am]é [Dm]maravilhoso
+[F7M]Glória [Am]ao Príncipe da [G]paz
+
+[Primeira Parte]
+[C]Um me[G4(6)]nino nas[Am]ceu
+Como um [C]Filho [G4(6)]se nos [Am]deu
+Ele é o próprio [C]Deus
+E [G4(6)]vive em [Am]mim
+Debaixo de suas [C]asas
+Eu [G4(6)]me escon[Am]di
+
+[Pré-Refrão]
+[F7M]E o Seu nome [Am]é [Dm]maravilhoso
+[F7M]Glória ao [Am]Príncipe da [G]paz
+
+[Refrão]
+[Am]O céu começa a se a[Em]brir
+Toda a [Am]terra se dobrou a [F7M]Ti
+[C]Cristo, Rei dos [Em]reis
+Veio nos bus[F7M]car
+
+[Am]Leva-nos em Tuas [Em]mãos
+Pelas [Am]portas da ci[F7M]dade
+[C]Na nova Jerusa[Em]lém
+Tua noiva vai en[F7M]trar
+
+[Solo]
+[Am]  [Em]  [Am]  [F7M]  [C]  [Em]  [F7M]
+
+[Segunda Parte]
+[Am]Santo, [Em]Santo, [Am]Santo é o Se[F7M]nhor
+[C]Santo, [Em]Santo, [F7M]Santo é o Senhor
+[Am]Santo, [Em]Santo, [Am]Santo é o Se[F7M]nhor
+[C]Santo, [Em]Santo, [F7M]Santo é o Senhor
+
+[Am]Ninguém me toca como O Se[Em]nhor
+[Am]Ninguém me vê como O Senhor me [F7M]vê
+Faz bri[C]lhar Seu [Em]rosto sobre [F7M]mim (2X)
+
+[Am]Ninguém me toca como O Se[Em]nhor
+[Am]Ninguém me vê como O Senhor me [F7M]vê
+Faz bri[C]lhar Seu [Em]rosto sobre [F7M]mim
+
+[Refrão]
+O [Am]céu começa a se a[Em]brir
+Toda a [Am]terra se dobrou a [F7M]Ti
+[C]Cristo, Rei dos [Em]reis
+Veio nos bus[F7M]car
+
+[Am]Leva-nos em Tuas [Em]mãos
+Pelas [Am]portas da ci[F7M]dade
+[C]Na nova Jerusa[Em]lém
+Tua noiva vai en[F7M]trar`
+      };
+
       const defaultSongs = [
         casaESuaSong,
         luzDoMundoSong,
@@ -2137,7 +2227,8 @@ Melhor que a [Bm]vida é o [A]teu a[G]mor`
         euQueroConhecerJesusSong,
         soTuEsSantoSong,
         euVouConstruirSong,
-        sublimeSong
+        sublimeSong,
+        isaias9Song
       ];
 
       const state = {
@@ -2149,6 +2240,8 @@ Melhor que a [Bm]vida é o [A]teu a[G]mor`
         scrollSpeed: 0,
         sequenceVisible: false,
         libraryPinned: false,
+        playlist: [],
+        playlistIndex: -1,
         editingId: null
       };
 
@@ -2200,10 +2293,61 @@ Melhor que a [Bm]vida é o [A]teu a[G]mor`
       function loadSongs() {
         state.songs = defaultSongs.map(song => ({ ...song }));
         state.selectedId = state.songs[0]?.id || null;
+        state.capo = currentSong()?.capo || 0;
       }
 
       function currentSong() {
         return state.songs.find(song => song.id === state.selectedId);
+      }
+
+      function parsePlaylist(value) {
+        if (!/^[\d\s,]*$/.test(value)) throw new Error("Use números separados por espaços ou vírgulas.");
+        const numbers = value.split(/[\s,]+/).filter(Boolean).map(Number);
+        if (numbers.some(number => !Number.isSafeInteger(number) || number < 1 || number > state.songs.length)) {
+          throw new Error(`Informe números de 1 a ${state.songs.length}.`);
+        }
+        return numbers.map(number => state.songs[number - 1].id);
+      }
+
+      function updatePlaylist() {
+        let error = "";
+        try {
+          state.playlist = parsePlaylist(el("playlistInput").value);
+        } catch (exception) {
+          state.playlist = [];
+          error = exception.message;
+        }
+        state.playlistIndex = state.playlist.indexOf(state.selectedId);
+        el("playlistInput").setCustomValidity(error);
+        el("playlistInput").setAttribute("aria-invalid", String(Boolean(error)));
+        el("playlistError").textContent = error;
+        el("playlistError").hidden = !error;
+        renderPlaylistNavigation();
+      }
+
+      function renderPlaylistNavigation() {
+        const index = state.playlistIndex;
+        el("previousSong").disabled = index <= 0;
+        el("nextSong").disabled = !state.playlist.length || index >= state.playlist.length - 1;
+        el("playlistPosition").textContent = state.playlist.length ? `${index + 1} / ${state.playlist.length}` : "";
+      }
+
+      function selectSong(id, playlistIndex = state.playlist.indexOf(id)) {
+        if (!state.songs.some(song => song.id === id)) return;
+        setScrollSpeed(0);
+        state.selectedId = id;
+        state.playlistIndex = playlistIndex;
+        state.transpose = 0;
+        state.capo = currentSong()?.capo || 0;
+        closeLibrary();
+        render();
+        window.scrollTo({ top: 0 });
+      }
+
+      function navigatePlaylist(direction) {
+        const index = state.playlistIndex + direction;
+        if (index < 0 || index >= state.playlist.length) return;
+        selectSong(state.playlist[index], index);
       }
 
       function escapeHtml(value) {
@@ -2350,24 +2494,21 @@ Melhor que a [Bm]vida é o [A]teu a[G]mor`
         const songs = state.songs.filter(song => `${song.title} ${song.artist}`.toLocaleLowerCase("pt-BR").includes(term));
         el("songList").innerHTML = songs.length ? songs.map(song => `
           <button class="song-item ${song.id === state.selectedId ? "active" : ""}" data-id="${escapeHtml(song.id)}">
-            <strong>${escapeHtml(song.title)}</strong>
-            <span>${escapeHtml(song.artist || "Sem artista")} · Tom ${escapeHtml(song.key)}</span>
+            <strong>${state.songs.indexOf(song) + 1}. ${escapeHtml(song.title)}</strong>
+            <span>${escapeHtml(song.artist || "Sem artista")} · Tom ${escapeHtml(transposeKey(song.key, song.capo || 0))}</span>
           </button>
         `).join("") : '<div class="empty">Nenhuma musica encontrada.</div>';
 
         el("songList").querySelectorAll(".song-item").forEach(button => {
           button.addEventListener("click", () => {
-            state.selectedId = button.dataset.id;
-            state.transpose = 0;
-            closeLibrary();
-            render();
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            selectSong(button.dataset.id);
           });
         });
       }
 
       function renderSong() {
         const song = currentSong();
+        renderPlaylistNavigation();
         el("sheet").classList.toggle("summary-view", state.sequenceVisible);
         el("musicView").setAttribute("aria-pressed", String(!state.sequenceVisible));
         el("summaryView").setAttribute("aria-pressed", String(state.sequenceVisible));
@@ -2394,6 +2535,14 @@ Melhor que a [Bm]vida é o [A]teu a[G]mor`
       }
 
       function render() {
+        // Keep the selected songs stable when the library is edited or reordered.
+        if (state.playlist.length) {
+          state.playlist = state.playlist.filter(id => state.songs.some(song => song.id === id));
+          if (state.playlist[state.playlistIndex] !== state.selectedId) {
+            state.playlistIndex = state.playlist.indexOf(state.selectedId);
+          }
+          el("playlistInput").value = state.playlist.map(id => state.songs.findIndex(song => song.id === id) + 1).join(" ");
+        }
         renderSongList();
         renderSong();
       }
@@ -2428,6 +2577,9 @@ Melhor que a [Bm]vida é o [A]teu a[G]mor`
       function closeEditor() { el("songDialog").close(); }
 
       el("toneDown").addEventListener("click", () => { state.transpose -= 1; renderSong(); });
+      el("playlistInput").addEventListener("input", updatePlaylist);
+      el("previousSong").addEventListener("click", () => navigatePlaylist(-1));
+      el("nextSong").addEventListener("click", () => navigatePlaylist(1));
       el("toneUp").addEventListener("click", () => { state.transpose += 1; renderSong(); });
       el("toneReset").addEventListener("click", () => { state.transpose = 0; renderSong(); });
       el("capoInput").addEventListener("input", event => {
@@ -2487,6 +2639,7 @@ Melhor que a [Bm]vida é o [A]teu a[G]mor`
 
         const song = {
           id: state.editingId || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+          capo: state.editingId ? state.capo : 0,
           title: el("songTitle").value.trim(),
           artist: el("songArtist").value.trim(),
           key,
