@@ -2242,6 +2242,7 @@ Tua noiva vai en[F7M]trar`
         libraryPinned: false,
         playlist: [],
         playlistIndex: -1,
+        playlistInvalid: false,
         editingId: null
       };
 
@@ -2318,6 +2319,7 @@ Tua noiva vai en[F7M]trar`
           error = exception.message;
         }
         state.playlistIndex = state.playlist.indexOf(state.selectedId);
+        state.playlistInvalid = Boolean(error);
         el("playlistInput").setCustomValidity(error);
         el("playlistInput").setAttribute("aria-invalid", String(Boolean(error)));
         el("playlistError").textContent = error;
@@ -2326,10 +2328,20 @@ Tua noiva vai en[F7M]trar`
       }
 
       function renderPlaylistNavigation() {
-        const index = state.playlistIndex;
-        el("previousSong").disabled = index <= 0;
-        el("nextSong").disabled = !state.playlist.length || index >= state.playlist.length - 1;
-        el("playlistPosition").textContent = state.playlist.length ? `${index + 1} / ${state.playlist.length}` : "";
+        const { songs, index } = navigationPosition();
+        el("previousSong").disabled = state.playlistInvalid || index <= 0;
+        el("nextSong").disabled = state.playlistInvalid || !songs.length || index >= songs.length - 1;
+        el("playlistPosition").textContent = songs.length ? `${index + 1} / ${songs.length}` : "";
+        const previous = state.songs.find(song => song.id === songs[index - 1]);
+        const next = state.songs.find(song => song.id === songs[index + 1]);
+        el("previousSong").title = previous ? `Anterior: ${previous.title}` : "Início da sequência";
+        el("nextSong").title = next ? `Próxima: ${next.title}` : "Fim da sequência";
+      }
+
+      function navigationPosition() {
+        if (state.playlist.length) return { songs: state.playlist, index: state.playlistIndex };
+        const songs = state.songs.map(song => song.id);
+        return { songs, index: songs.indexOf(state.selectedId) };
       }
 
       function selectSong(id, playlistIndex = state.playlist.indexOf(id)) {
@@ -2345,9 +2357,11 @@ Tua noiva vai en[F7M]trar`
       }
 
       function navigatePlaylist(direction) {
-        const index = state.playlistIndex + direction;
-        if (index < 0 || index >= state.playlist.length) return;
-        selectSong(state.playlist[index], index);
+        if (state.playlistInvalid) return;
+        const position = navigationPosition();
+        const index = position.index + direction;
+        if (index < 0 || index >= position.songs.length) return;
+        selectSong(position.songs[index], state.playlist.length ? index : -1);
       }
 
       function escapeHtml(value) {
